@@ -2,6 +2,8 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <memory>
+#include <stdexcept>
 #include "logger.h"
 using namespace std;
 
@@ -33,7 +35,10 @@ public:
 // 기본 캐릭터
 class Knight : public Character {
 public:
-    Knight() { description = "Knight"; type = CharacterType::Knight;
+    Knight() {
+        description = "Knight";
+        type = CharacterType::Knight;
+        Logger::getInstance()->log("[Create] Knight");//로그 기록 추가
     }
     int getAttack() const override { return 15; }
     int getSpeed() const override { return 8; }
@@ -42,7 +47,10 @@ public:
 
 class Wizard : public Character {
 public:
-    Wizard() { description = "Wizard"; type = CharacterType::Wizard;
+    Wizard() {
+        description = "Wizard";
+        type = CharacterType::Wizard;
+        Logger::getInstance()->log("[Create] Wizard");
     }
     int getAttack() const override { return 20; }
     int getSpeed() const override { return 10; }
@@ -51,7 +59,10 @@ public:
 
 class Archer : public Character {
 public:
-    Archer() { description = "Archer"; type = CharacterType::Archer;
+    Archer() {
+        description = "Archer";
+        type = CharacterType::Archer;
+        Logger::getInstance()->log("[Create] Archer");
     }
     int getAttack() const override { return 18; }
     int getSpeed() const override { return 15; }
@@ -64,6 +75,8 @@ protected:
     shared_ptr<Character> character;
 public:
     EquipDeco(shared_ptr<Character> c, string item) : character(c) {
+        //로그에 장착 시도 기록
+        Logger::getInstance()->log("[Trying to Equip] " + character->getDescription() + " + " + item);
     }
     virtual ~EquipDeco() { }
 };
@@ -91,7 +104,12 @@ public:
 
 class Staff : public EquipDeco {
 public:
-    Staff(shared_ptr<Character> c) : EquipDeco(c, "Staff") {}
+    Staff(shared_ptr<Character> c) : EquipDeco(c, "Staff") {
+        if (character->getType() != CharacterType::Wizard) {//장착 제한 조건
+            //Logger::getInstance()->log("[Equip Fail] Staff can only be equipped by Wizard.");
+            throw invalid_argument("Staff requires Wizard");
+        }
+    }
     string getDescription() const override { return character->getDescription() + " + Staff"; }
     int getAttack() const override { return character->getAttack() + 8; }
     int getSpeed() const override { return character->getSpeed(); }
@@ -111,7 +129,12 @@ public:
 
 class Bow : public EquipDeco {
 public:
-    Bow(shared_ptr<Character> c) : EquipDeco(c, "Bow") {}
+    Bow(shared_ptr<Character> c) : EquipDeco(c, "Bow") {
+        if (character->getType() != CharacterType::Archer && character->getType() != CharacterType::Knight) {//장착 제한 조건
+            //Logger::getInstance()->log("[Equip Fail] Bow can only be equipped by Archer or Knight.");
+            throw invalid_argument("Bow requires Archer or Knight");
+        }
+    }
     string getDescription() const override { return character->getDescription() + " + Bow"; }
     int getAttack() const override { return character->getAttack() + 7; }
     int getSpeed() const override { return character->getSpeed() + 2; }
